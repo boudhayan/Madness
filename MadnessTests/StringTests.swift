@@ -50,12 +50,11 @@ final class StringTests: XCTestCase {
 	}
 }
 
-func assertNumber(input: String, message: String = "", file: String = __FILE__, line: UInt = __LINE__) -> Double? {
-	return assertEqual(parse(number, input: input).right, Double(input)!, message, file, line)
+func assertNumber(_ input: String, message: String = "", file: StaticString = #file, line: UInt = #line) {
+	return XCTAssertEqual(parse(number, input: input).value, Double(input)!, message, file: file, line: line)
 }
 
 // MARK: - Imports
 
-import Assertions
 import Madness
 import XCTest

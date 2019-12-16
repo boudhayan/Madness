@@ -14,14 +14,14 @@ private struct Tree<T: Equatable>: Equatable, CustomStringConvertible {
 
 	var description: String {
 		let space = " "
-		let valueString = values.map({ String($0) }).joinWithSeparator(space)
+		let valueString = values.map({ String(describing: $0) }).joined(separator: space)
 		return children.count > 0 ?
-			"(\(valueString) \(children.map({ String($0) }).joinWithSeparator(space)))"
+			"(\(valueString) \(children.map({ String(describing: $0) }).joined(separator: space)))"
 		:	"(\(valueString))"
 	}
 }
 
-private func == <T: Equatable> (left: Tree<T>, right: Tree<T>) -> Bool {
+private func == <T> (left: Tree<T>, right: Tree<T>) -> Bool {
 	return left.values == right.values && left.children == right.children
 }
 
@@ -35,11 +35,11 @@ final class MapTests: XCTestCase {
 
 	func testFlatMap() {
 		let item: Parser<String, String>.Function = %"-" *> String.lift(%("a"..."z")) <* %"\n"
-		let tree: Int -> Parser<String, Tree<String>>.Function = fix { tree in
+		let tree: (Int) -> Parser<String, Tree<String>>.Function = fix { tree in
 			{ n in
 				let line: Parser<String, String>.Function = (%"\t" * n) *> item
 				return line >>- { itemContent in
-					(many(tree(n + 1)) |> map { children in Tree(itemContent, children) })
+					map({ children in Tree(itemContent, children) })(many(tree(n + 1)))
 				}
 			}
 		}
@@ -52,7 +52,7 @@ final class MapTests: XCTestCase {
 		]
 
 		for (input, actual) in fixtures {
-			if let parsed = parse(tree(0), input: input).right {
+			if let parsed = parse(tree(0), input: input).value {
 				XCTAssertEqual(parsed, actual)
 			} else {
 				XCTFail("expected to parse \(input) as \(actual) but failed to parse")
@@ -66,7 +66,7 @@ final class MapTests: XCTestCase {
 		]
 
 		for input in failures {
-			XCTAssert(parse(tree(0), input: input).right == nil)
+			XCTAssert(parse(tree(0), input: input).value == nil)
 		}
 
 	}
@@ -92,7 +92,7 @@ final class MapTests: XCTestCase {
 	}
 
 	func testCurriedMap() {
-		assertTree(%123 |> map({ String($0) }), [123], ==, "123")
+		assertTree(map({ String($0) })(%123), [123], ==, "123")
 	}
 
 
@@ -107,5 +107,4 @@ final class MapTests: XCTestCase {
 // MARK: - Imports
 
 import Madness
-import Prelude
 import XCTest

@@ -6,22 +6,19 @@ final class CollectionTests: XCTestCase {
 
 		typealias Fibonacci = Parser<[Int], [Int]>.Function
 
-		let fibonacci: (Int, Int) -> Fibonacci = fix { fibonacci in
-			{ (x: Int, y: Int) -> Fibonacci in
-				(%(x + y) >>- { (xy: Int) -> Fibonacci in
-					{ [ xy ] + $0 } <^> fibonacci(y, xy)
-				}) <|> { .Right([], $1) }
+		func fibonacci(_ x: Int, _ y: Int) -> Fibonacci {
+			let combined: Fibonacci = %(x + y) >>- { (xy: Int) -> Fibonacci in
+				{ [ xy ] + $0 } <^> fibonacci(y, xy)
 			}
+			return combined <|> pure([])
 		}
-
-		assert(parse(fibonacci(0, 1), input: input).right, ==, input)
+		
+		XCTAssertEqual(parse(fibonacci(0, 1), input: input).value!, input)
 	}
 }
 
 
 // MARK: - Imports
 
-import Assertions
 import Madness
-import Prelude
 import XCTest

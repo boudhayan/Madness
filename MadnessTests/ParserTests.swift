@@ -1,20 +1,18 @@
 //  Copyright (c) 2014 Rob Rix. All rights reserved.
 
-import Assertions
-import Either
 import Madness
-import Prelude
+import Result
 import XCTest
 
 final class ParserTests: XCTestCase {
 	// MARK: - Operations
 
 	func testParseRejectsPartialParses() {
-		assertNil(parse(%("x".characters), input: "xy".characters).right)
+		XCTAssertNil(parse(%("x".characters), input: "xy".characters).value)
 	}
 
 	func testParseProducesParseTreesForFullParses() {
-		assertEqual(parse(%"x", input: "x").right, "x")
+		XCTAssertEqual(parse(%"x", input: "x").value, "x")
 	}
 
 
@@ -55,12 +53,10 @@ final class ParserTests: XCTestCase {
 	}
 
 	func testNoneIsIdentityForAlternation() {
-		typealias Parser = Madness.Parser<String, String>.Function
-		let alternate: (Parser, Parser) -> Parser = { $0 <|> $1 }
-		let parser = [%"a", %"b", %"c"].reduce(none(), combine: alternate)
-		assertTree(parser, "a", ==, "a")
-		assertTree(parser, "b", ==, "b")
-		assertTree(parser, "c", ==, "c")
+		let parser = [%"a", %"b", %"c"].reduce(none(), <|>)
+		assertTree(parser, "a".characters, ==, "a")
+		assertTree(parser, "b".characters, ==, "b")
+		assertTree(parser, "c".characters, ==, "c")
 	}
 
 
